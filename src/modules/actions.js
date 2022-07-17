@@ -158,6 +158,10 @@ const transformCode = (code) => {
     .replace(
       /(nl|ns)(\.type).ApproxCompare\((p_r|vl_r|vh_r|vh1|vl1|p2|d_r)\) == 0/gm,
       "$1$2 == handlarVXv2EnumLevelType.$3"
+    )
+    .replace(
+      /(_p\(1\)[\s?]{0,}(\+|-)[\s?]{0,}vl\(1\))(\.ApproxCompare\(1\*TickSize\)\s>\s\d?)/gm,
+      "($1)$3"
     );
   codeFormatted.value = resultString;
 
