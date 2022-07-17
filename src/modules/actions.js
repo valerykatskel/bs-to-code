@@ -152,7 +152,7 @@ const transformCode = (code) => {
   // debugger;
   resultString = resultString
     .replace(
-      /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\[(\d|start|i|size123|size123 \+ \d)\]/g,
+      /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\[(\d{1,}|start|i|n\s\+\s\d{1,}|size123|size123\s\+\s\d{1,})\]/g,
       "_$1($2)"
     )
     .replace(
