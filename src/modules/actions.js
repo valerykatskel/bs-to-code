@@ -162,6 +162,10 @@ const transformCode = (code) => {
     .replace(
       /(_.{1,}\([\d]{1,}\))[\s]{0,}(\+|-)[\s]{0,}(_.{1,}\([\d]{1,}\))(\.ApproxCompare\([\d]{1,}\*TickSize\)[\s]{0,}>[\s]{0,}[\d]{1,})/gm,
       "Instrument.MasterInstrument.RoundToTickSize($1 $2 $3)$4"
+    )
+    .replace(
+      /\((_.{1,}\(n\s{1,}(\+|-)\s{1,}1\)\s{1,}(\+|-)\s{1,}(\d{1,}\*TickSize))\)/gm,
+      "(Instrument.MasterInstrument.RoundToTickSize($1))"
     );
   codeFormatted.value = resultString;
 
