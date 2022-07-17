@@ -160,8 +160,8 @@ const transformCode = (code) => {
       "$1$2 == handlarVXv2EnumLevelType.$3"
     )
     .replace(
-      /(_p\(1\)[\s?]{0,}(\+|-)[\s?]{0,}vl\(1\))(\.ApproxCompare\(1\*TickSize\)\s>\s\d?)/gm,
-      "($1)$3"
+      /(_.{1,}\([\d]{1,}\))[\s]{0,}(\+|-)[\s]{0,}(_.{1,}\([\d]{1,}\))(\.ApproxCompare\([\d]{1,}\*TickSize\)[\s]{0,}>[\s]{0,}[\d]{1,})/gm,
+      "Instrument.MasterInstrument.RoundToTickSize($1 $2 $3)$3"
     );
   codeFormatted.value = resultString;
 
