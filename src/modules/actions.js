@@ -21,10 +21,6 @@ const transformCode = (code) => {
       /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)(\d?)==(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)(\d?)(\+-)(\d?)t/gm,
       "$1$2<=$3$4+$6t&&$1$2>=$3$4-$6t"
     )
-    .replace(
-      /(ns|nl)(\.type)==(p_r|vl_r|vh_r|vh1|vl1|p2|d_r)/gm,
-      "$1$2 == handlarVXv2EnumLevelType.$3"
-    )
     .replace(/(-|\+)(\d{1,2})(t)/g, " $1 $2*TickSize"); // окультурим добавление тиков
 
   for (let i = 0; i < formattedValue.length; i++) {
@@ -154,10 +150,15 @@ const transformCode = (code) => {
     resultString.replace(/\s+/g, "").match(/\|\|&&/g)?.length > 0;
 
   // debugger;
-  resultString = resultString.replace(
-    /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\[(\d|start|i|size123|size123 \+ \d)\]/g,
-    "_$1($2)"
-  );
+  resultString = resultString
+    .replace(
+      /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\[(\d|start|i|size123|size123 \+ \d)\]/g,
+      "_$1($2)"
+    )
+    .replace(
+      /(nl|ns)(\.type).ApproxCompare\((p_r|vl_r|vh_r|vh1|vl1|p2|d_r)\) == 0/gm,
+      "$1$2 == handlarVXv2EnumLevelType.$3"
+    );
   codeFormatted.value = resultString;
 
   if (bracketsCountError) {
