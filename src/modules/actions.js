@@ -18,8 +18,12 @@ const transformCode = (code) => {
   formattedValue = code
     .replace(reRemoveSpaces, "") // удалим лишние пробелы
     .replace(
-      /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)(\d?)==(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)(\d?)(\+-)(\d?)t/gm,
-      "$1$2<=$3$4+$6t&&$1$2>=$3$4-$6t"
+      /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)(\d?)==(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)(_r|_l|_b|_m){0,}(\d{0,})(\+-)(\d{1,})t/gm,
+      "$1$2<=$3$4$5+$7t&&$1$2>=$3$4$5-$7t"
+    )
+    .replace(
+      /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\[(n\+\d?)\]==(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\[(n\+\d?)\](\+-)(\d{1,})t/gm,
+      "$1[$2]<=$3[$4]+$6t&&$1[$2]>=$3[$4]-$6t"
     )
     .replace(/(-|\+)(\d{1,2})(t)/g, " $1 $2*TickSize"); // окультурим добавление тиков
 
@@ -63,9 +67,13 @@ const transformCode = (code) => {
   }
 
   resultString = resultString
-    .replace(/\|((d|td|p|vh|vl)(\d+\$))\|/g, "Math.Abs($1)")
-    .replace(/\|(.+[-+].+)\|/g, "Math.Abs($1)")
-    .replace(/(\))(\|\|)/g, "$1 $2");
+    .replace(/\|((d|td|p|vh|vl)(\d+\$))\|/gm, "Math.Abs($1)")
+    .replace(/\|(d{(vh|vl)}_\d{1,})\|/gm, "Math.Abs($1)")
+    // .replace(
+    //   /\|(.{1,}\d{1,}(\+|-).{1,}\d{1,})\|(==|<|>|<=|>=)\|(.{1,}\d{1,}(\+|-).{1,}\d{1,})\|/gm,
+    //   "Math.Abs($1)$3Math.Abs($4)"
+    // )
+    .replace(/(\))(\|\|)/gm, "$1 $2");
 
   resultString = resultString
     .replace(
@@ -166,7 +174,16 @@ const transformCode = (code) => {
     .replace(
       /\((_.{1,}\(n\s{1,}(\+|-)\s{1,}1\)\s{1,}(\+|-)\s{1,}(\d{1,}\*TickSize))\)/gm,
       "(Instrument.MasterInstrument.RoundToTickSize($1))"
+    )
+    .replace(/\s\|\s/gm, "|")
+    .replace(
+      /(\|)(_(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\(\d{1,}\)\s{1,}(\+|-)\s{1,}_(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\(\d{1,}\))(\|)/gm,
+      "Math.Abs(Instrument.MasterInstrument.RoundToTickSize($2))"
     );
+  // .replace(
+  //   /Abs\((.+)(-|\+)(.+)\)/gm,
+  //   "Abs(Instrument.MasterInstrument.RoundToTickSize($1$2$3))"
+  // );
   codeFormatted.value = resultString;
 
   if (bracketsCountError) {
