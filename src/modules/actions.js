@@ -1,4 +1,4 @@
-import { getTabs, updateSign } from "./helpers";
+import { getTabs } from "./helpers";
 import { codeFormatted, appCode } from "./elements";
 let bracketsCountError = false;
 const copy = require("clipboard-copy");
@@ -13,26 +13,19 @@ const transformCode = (code) => {
   let resultString = "";
 
   let reRemoveSpaces = /[\s?]/g;
-  let reValueProcess = /\$/g;
+  let rePlusMinusTics = /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}((\[n\+){0,}\d{0,}(\]){0,})==(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}((\[n\+){0,}\d{0,}(\]){0,})(\+-(\d{0,1}t))/gm;
 
   formattedValue = code
     .replace(reRemoveSpaces, "") // удалим лишние пробелы
-    .replace(
-      /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)(\d?)==(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)(_r|_l|_b|_m){0,}(\d{0,})(\+-)(\d{1,})t/gm,
-      "$1$2<=$3$4$5+$7t&&$1$2>=$3$4$5-$7t"
-    )
-    .replace(
-      /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\[(n\+\d?)\]==(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\[(n\+\d?)\](\+-)(\d{1,})t/gm,
-      "$1[$2]<=$3[$4]+$6t&&$1[$2]>=$3[$4]-$6t"
-    )
-    .replace(/(-|\+)(\d{1,2})(t)/g, " $1 $2*TickSize"); // окультурим добавление тиков
+    .replace(rePlusMinusTics, "$1$2$3<=$6$7$8+$12&&$1$2$3>=$6$7$8-$12") // преобразуем все +- тики
+    .replace(/(-|\+)(\d{1,})(t)/g, "$1$2*TickSize"); // окультурим добавление тиков
 
   for (let i = 0; i < formattedValue.length; i++) {
     if (formattedValue[i] === "&") {
       if (formattedValue[i - 1] === "&") {
         resultString += formattedValue[i] + "\n" + getTabs(tabLevel);
       } else {
-        resultString += " " + formattedValue[i];
+        resultString += formattedValue[i];
       }
     } else if (formattedValue[i] === "|") {
       debugger;
@@ -51,7 +44,7 @@ const transformCode = (code) => {
         formattedValue[i + 1] === "|" &&
         formattedValue[i + 2] !== "|"
       ) {
-        resultString += " " + formattedValue[i];
+        resultString += formattedValue[i];
       } else resultString += formattedValue[i];
     } else if (formattedValue[i] === "(") {
       resultString += formattedValue[i];
@@ -65,69 +58,96 @@ const transformCode = (code) => {
       resultString += formattedValue[i];
     }
   }
-
-  resultString = resultString
-    .replace(/\|((d|td|p|vh|vl)(\d+\$))\|/gm, "Math.Abs($1)")
-    .replace(/\|(d{(vh|vl)}_\d{1,})\|/gm, "Math.Abs($1)")
-    // .replace(
-    //   /\|(.{1,}\d{1,}(\+|-).{1,}\d{1,})\|(==|<|>|<=|>=)\|(.{1,}\d{1,}(\+|-).{1,}\d{1,})\|/gm,
-    //   "Math.Abs($1)$3Math.Abs($4)"
-    // )
-    .replace(/(\))(\|\|)/gm, "$1 $2");
+  //resultString = formattedValue;
 
   resultString = resultString
     .replace(
-      /(start_r|stop_r|start_l|stop_l|start_b|stop_b|start_m|stop_m)/g,
-      "getBarByIndex(i$1)"
+      // && перенесем на новую строку;
+      /(&&)/gm,
+      "\n$1\n"
     )
     .replace(
-      /(dvh|dvl|dp|imb|lbody|body|hbody|vh|vl|amx|bmx|v|o|c|h|l|p|d){1}(\d{1,2}){1,2}/g,
-      "$1[$2]"
+      // || перенесем на новую строку;
+      /(\|\|)/gm,
+      "\n$1\n"
     )
-    .replace(/(p|d){1}{(vh|vl|high|low){1}}(_){1}(\d{1,2}){1,2}/g, "$1_$2[$4]")
-    .replace(/(p|d){1}{(vh|vl|h|l){1}}(_r|_l|_b){1}/g, "$1_$2$3")
-    .replace(/(<(?=[^=])|>(?=[^=])|<=|>=|==|!=)/g, " $1 ")
-    .replace(/(\[\d{1,2}\])(\$)/g, "_value$1")
-    .replace(reValueProcess, "_value");
-  //.replace(/\|([^|)(\s]+)\|/g, "Math.Abs($1)");
-
-  resultString = resultString.replace(
-    /Abs\((.+)(-|\+)(.+)\)/gm,
-    "Abs(Instrument.MasterInstrument.RoundToTickSize($1$2$3))"
-  );
-
-  resultString = resultString
-    .split("\n")
-    .map((el) => {
-      if (el.indexOf(" > ") > -1) {
-        return updateSign(el.split(" > "), " > ");
-      } else if (el.indexOf(" >= ") > -1) {
-        return updateSign(el.split(" >= "), " >= ");
-      } else if (el.indexOf(" < ") > -1) {
-        return updateSign(el.split(" < "), " < ");
-      } else if (el.indexOf(" <= ") > -1) {
-        return updateSign(el.split(" <= "), " <= ");
-      } else if (el.indexOf(" != ") > -1) {
-        return updateSign(el.split(" != "), " != ");
-      } else if (el.indexOf(" == ") > -1) {
-        return updateSign(el.split(" == "), " == ");
-      }
-      return el;
-    })
-    .join("\n");
-
-  resultString = resultString
+    .replace(
+      // переведем знаки $ в _value для ситуаций, когда перед долларом нет индекса например d_r$
+      /(\$)/gm,
+      "_value"
+    )
+    .replace(
+      // после замена $ в _value могут появиться варианты td1_value когда индекс нужно поставить сразу после _value
+      /(\d{1,})_value/gm,
+      "_value$1"
+    )
+    .replace(
+      // обработаем отдельно стоящие модули, как содержащие выражения |vl1 - p1|, так и содержащие просто значения |td_value1|
+      /(\|)((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\d{0,})((\+|-)((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\d{0,}))){0,})(\|)/gm,
+      "Math.Abs($2)"
+    )
+    .replace(
+      // содержимое квадратных скобок перенесем в круглые
+      /(\[)((i){0,}(size123){0,1}((\+\d{1,})){0,})(\])/gm,
+      "($2)"
+    )
     .replace(
       // исправим неправильную корректировку описание объема вместо v_value на v
       /v_value/g,
       "v"
     )
     .replace(
-      /\(([^)<>=\nn]+?)(-|\+){1}([^)]+?)(TickSize){1}\)/g,
-      "(Instrument.MasterInstrument.RoundToTickSize($1$2$3$4))"
-    ) // округление до тика
-    .replace(/ApproxCompare\((\d{1,2})(t)\)/g, "ApproxCompare($1*TickSize)")
-    .replace(/([^\s])([+|-]{1})([^\s])/g, "$1 $2 $3");
+      // обрамим лидирующую сумму или разницу в скобки, чтобы при дальше при при добавлении .ApproxCompare() корректно сравнивалось с выражением целым, а не с первой частью
+      /(((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(_value){0,}(\d{1,}){0,})(\+|-)((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(_value){0,}(\d{1,}){0,}))(\.|<=|>=|!=|==|<|>){0,}/gm,
+      "Instrument.MasterInstrument.RoundToTickSize($1)$13"
+    )
+    .replace(
+      // заменим обрамим значение в фигурных скобкам с обоих стором подчеркиваниями
+      /(\{)(vh|vl)(\})/gm,
+      "_$2"
+    )
+    .replace(
+      // все индексы типа l3 vh1 приведем к виду функций _l(3) и _vh(1)
+      /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\d{1,})/g,
+      "_$1$2($3)"
+    )
+    .replace(
+      // заменим все сравнения через корректное ApproxCompare
+      /(.{1,})(>=|<=|==|!=|>|<)(.{1,})/gm,
+      "$1.ApproxCompare($3)$20"
+    )
+    .replace(
+      // заменим все разности на Instrument.MasterInstrument.RoundToTickSize
+      /(ApproxCompare)\(((.{0,})(\+|-)(.{0,}))\)(<=|>=|==|!=|>|<)/gm,
+      "$1(Instrument.MasterInstrument.RoundToTickSize($2))$6"
+    )
+    .replace(
+      // добавим правильное отображение типа уровня в условии
+      /(nl|ns)(\.type).ApproxCompare\((p_r|vl_r|vh_r|vh1|vl1|p2|d_r)\) == 0/gm,
+      "$1$2 == handlarVXv2EnumLevelType.$3"
+    )
+    .replace(
+      // добавим слева и с права от плюса и минуса пробелы для улучшения читаемости условий
+      /(\+|-)/gm,
+      " $1 "
+    )
+    .replace(
+      // удалим все расставленные переносы строк, чтобы дальше корректно отформатировать отступы
+      /(\n)(&&|\|\|)(\n)/gm,
+      "$2"
+    )
+    .replace(
+      // добавим недостающий пробел в таких местах )|| и )&&, чтобы стало так ) || и ) &&
+      /(\))(&&|\|\|)/gm,
+      "$1 $2"
+    )
+    .replace(
+      // добавим недостающие пробелы форматирования в конце строк
+      /(>=|<=|!=|==|>|<)(\d){1,}(&&|\|\|){0,}$/gm,
+      " $1 $2 $3"
+    );
+
+  //resultString = resultString
 
   // контроль наличия номер бара в названии переменной, где номер бара обязательный
   let barIndexMissingForAMX = resultString.match(/amx\./g)?.length;
@@ -157,58 +177,13 @@ const transformCode = (code) => {
   let logicSignsCountError4 =
     resultString.replace(/\s+/g, "").match(/\|\|&&/g)?.length > 0;
 
-  // debugger;
-  resultString = resultString
-    .replace(
-      /(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\[(\d{1,}|start|i|n\s\+\s\d{1,}|size123|size123\s\+\s\d{1,})\]/g,
-      "_$1($2)"
-    )
-    .replace(
-      /(nl|ns)(\.type).ApproxCompare\((p_r|vl_r|vh_r|vh1|vl1|p2|d_r)\) == 0/gm,
-      "$1$2 == handlarVXv2EnumLevelType.$3"
-    )
-    .replace(
-      /(_.{1,}\([\d]{1,}\))[\s]{0,}(\+|-)[\s]{0,}(_.{1,}\([\d]{1,}\))(\.ApproxCompare\([\d]{1,}\*TickSize\)[\s]{0,}>[\s]{0,}[\d]{1,})/gm,
-      "Instrument.MasterInstrument.RoundToTickSize($1 $2 $3)$4"
-    )
-    .replace(
-      /\((_.{1,}\(n\s{1,}(\+|-)\s{1,}1\)\s{1,}(\+|-)\s{1,}(\d{1,}\*TickSize))\)/gm,
-      "(Instrument.MasterInstrument.RoundToTickSize($1))"
-    )
-    .replace(/\s\|\s/gm, "|")
-    .replace(
-      /(\|)(_(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\(\d{1,}\)\s{1,}(\+|-)\s{1,}_(o|c|h|l|p|p_value|d|d_value|td_value|vh|vl|vh_value|vl_value|d_vh|d_vl|d_high|d_low|v|hbody|body|lbody|dp|dvh|dvl|dp_value|dvh_value|dvl_value|amx|bmx|amx_value|bmx_value)\(\d{1,}\))(\|)/gm,
-      "Math.Abs(Instrument.MasterInstrument.RoundToTickSize($2))"
-    );
-  // .replace(
-  //   /Abs\((.+)(-|\+)(.+)\)/gm,
-  //   "Abs(Instrument.MasterInstrument.RoundToTickSize($1$2$3))"
-  // );
   codeFormatted.value = resultString;
-
-  if (bracketsCountError) {
-    appCode.classList.add("errorBracketsCount");
-  }
-
-  if (logicSignsCountError1) {
-    appCode.classList.add("errorLogicSignsCount1");
-  }
-
-  if (logicSignsCountError2) {
-    appCode.classList.add("errorLogicSignsCount2");
-  }
-
-  if (logicSignsCountError3) {
-    appCode.classList.add("errorLogicSignsCount3");
-  }
-
-  if (logicSignsCountError4) {
-    appCode.classList.add("errorLogicSignsCount4");
-  }
-
-  if (barIndexMissingForAMX > 0) {
-    appCode.classList.add("errorBarIndex");
-  }
+  if (bracketsCountError) appCode.classList.add("errorBracketsCount");
+  if (logicSignsCountError1) appCode.classList.add("errorLogicSignsCount1");
+  if (logicSignsCountError2) appCode.classList.add("errorLogicSignsCount2");
+  if (logicSignsCountError3) appCode.classList.add("errorLogicSignsCount3");
+  if (logicSignsCountError4) appCode.classList.add("errorLogicSignsCount4");
+  if (barIndexMissingForAMX > 0) appCode.classList.add("errorBarIndex");
   copy(resultString); // копируем отформатированный код в буфер обмена
 };
 
