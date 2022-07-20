@@ -88,7 +88,7 @@ const transformCode = (code) => {
     )
     .replace(
       // содержимое квадратных скобок перенесем в круглые
-      /(\[)(start|i|size123(\+\d){0,})(\])/gm,
+      /(\[)(n\+\d{1,}|start|i|size123(\+\d){0,})(\])/gm,
       "($2)"
     )
     .replace(
@@ -112,14 +112,19 @@ const transformCode = (code) => {
       "_$1$2($4)"
     )
     .replace(
+      // все описания функций без подчеркивания и с n внутри скобок типа o(n+1) c(n+1) переведем в _o(n+1) и _c(n+1)
+      /((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}\(n(\+|-)\d{1,}\))/gm,
+      "_$1"
+    )
+    .replace(
       // заменим все сравнения через корректное ApproxCompare
       /(.{1,})(>=|<=|==|!=|>|<)(.{1,})/gm,
       "$1.ApproxCompare($3)$20"
     )
     .replace(
       // заменим все разности на Instrument.MasterInstrument.RoundToTickSize
-      /(ApproxCompare)\(((.{0,})(\+|-)(.{0,}))\)(<=|>=|==|!=|>|<)/gm,
-      "$1(Instrument.MasterInstrument.RoundToTickSize($2))$6"
+      /(ApproxCompare)(\()((_(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\())(n\+\d{1,}|\d|start|i|size123(\+\d){0,})(\))(\+|-)(.{0,}))(\))/gm,
+      "$1$2Instrument.MasterInstrument.RoundToTickSize($3)$10"
     )
     .replace(
       // добавим правильное отображение типа уровня в условии
