@@ -88,7 +88,7 @@ const transformCode = (code) => {
     )
     .replace(
       // содержимое квадратных скобок перенесем в круглые
-      /(\[)((i){0,}(size123){0,1}((\+\d{1,})){0,})(\])/gm,
+      /(\[)(start|i|size123(\+\d){0,})(\])/gm,
       "($2)"
     )
     .replace(
@@ -102,14 +102,14 @@ const transformCode = (code) => {
       "Instrument.MasterInstrument.RoundToTickSize($1)$13"
     )
     .replace(
-      // заменим обрамим значение в фигурных скобкам с обоих стором подчеркиваниями
+      // дополним значение в фигурных скобкам с с левой стороны подчеркиванием
       /(\{)(vh|vl)(\})/gm,
       "_$2"
     )
     .replace(
       // все индексы типа l3 vh1 приведем к виду функций _l(3) и _vh(1)
-      /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\d{1,})/g,
-      "_$1$2($3)"
+      /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\({0,})(\d|start|i|size123(\+\d){0,})(\){0,})/gm,
+      "_$1$2($4)"
     )
     .replace(
       // заменим все сравнения через корректное ApproxCompare
