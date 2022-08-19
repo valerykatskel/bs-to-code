@@ -112,7 +112,7 @@ const transformCode = (code) => {
     )
     .replace(
       // содержимое квадратных скобок перенесем в круглые
-      /(\[)([n|i]\+\d{1,}|start|i|size123(\+\d){0,})(\])/gm,
+      /(\[)([n|i]\+\d{1,}|start(_r|_l_|_b|_m){0,1}|i|size123(\+\d){0,})(\])/gm,
       "($2)"
     )
     .replace(
@@ -134,6 +134,12 @@ const transformCode = (code) => {
       // все описания функций без подчеркивания и с n внутри скобок типа o(n+1) c(n+1) переведем в _o(n+1) и _c(n+1)
       /((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}\((n|i)((\+|-)\d{1,}){0,}\))/gm,
       "_$1"
+    )
+
+    .replace(
+      // все описания функций без подчеркивания и с n внутри скобок типа o(start_r) переведем в _o(istart_r)
+      /((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}\((start_r|start_l|start_m|start_b)((\+|-)\d{1,}){0,}\))/gm,
+      "_$2(getBar(i$4))"
     )
     .replace(
       // заменим все сравнения через корректное ApproxCompare
