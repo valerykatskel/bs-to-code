@@ -112,7 +112,7 @@ const transformCode = (code) => {
     )
     .replace(
       // содержимое квадратных скобок перенесем в круглые
-      /(\[)(n\+\d{1,}|start|i|size123(\+\d){0,})(\])/gm,
+      /(\[)([n|i]\+\d{1,}|start|i|size123(\+\d){0,})(\])/gm,
       "($2)"
     )
     .replace(
