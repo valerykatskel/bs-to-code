@@ -12,14 +12,48 @@ const transformCode = (code) => {
   let formattedValue = "";
   let resultString = "";
 
-  let reRemoveSpaces = /[\s?]/g;
-  let rePlusMinusTics = /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}((\[n\+){0,}\d{0,}(\]){0,})==(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}((\[n\+){0,}\d{0,}(\]){0,})(\+-(\d{0,1}t))/gm;
-
   formattedValue = code
-    .replace(reRemoveSpaces, "") // удалим лишние пробелы
-    .replace(rePlusMinusTics, "$1$2$3<=$6$7$8+$12&&$1$2$3>=$6$7$8-$12") // преобразуем все +- тики
-    .replace(/(-|\+)(\d{1,})(t)/g, "$1$2*TickSize"); // окультурим добавление тиков
+    .replace(
+      // удалим лишние пробелы
+      /[\s?]/gm,
+      ""
+    )
+    .replace(
+      // преобразуем все +- тики
+      /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}((\[n\+){0,}\d{0,}(\]){0,})==(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}((\[n\+){0,}\d{0,}(\]){0,})(\+-(\d{0,1}t))/gm,
+      "$1$2$3<=$6$7$8+$12&&$1$2$3>=$6$7$8-$12"
+    )
+    .replace(
+      // окультурим добавление тиков
+      /(-|\+)(\d{1,})(t)/g,
+      "$1$2*TickSize"
+    )
+    .replace(
+      // переведем знаки $ в _value для ситуаций, когда перед долларом нет индекса например d_r$
+      /(\$)/gm,
+      "_value"
+    )
+    .replace(
+      // после замена $ в _value могут появиться варианты td1_value когда индекс нужно поставить сразу после _value
+      /(\d{1,})_value/gm,
+      "_value$1"
+    )
+    .replace(
+      // преобразуем значения с фигурными скобками в правильные: из d{vl}_2 в d_vl2
+      /(d)\{(vh|vl)\}_(\d{1,})/g,
+      "$1_$2$3"
+    )
 
+    .replace(
+      // преобразуем значения с фигурными скобками в правильные: из d{vl}_r в d_vl_r
+      /(d)\{(vh|vl)\}(_r|_l|_b)/gm,
+      "$1_$2$3"
+    )
+    .replace(
+      // обработаем отдельно стоящие модули, как содержащие выражения |vl1 - p1|, так и содержащие просто значения |td_value1|
+      /(\|)((td_value|p_value|d_value|vh_value|vh_r_value|vl_value|vl_r_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\d{0,})((\+|-)((td_value|p_value|d_value|vh_value|vh_r_value|vl_value|vl_r_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\d{0,}))){0,})(\|)/gm,
+      "Math.Abs($2)"
+    );
   for (let i = 0; i < formattedValue.length; i++) {
     if (formattedValue[i] === "&") {
       if (formattedValue[i - 1] === "&") {
@@ -62,6 +96,11 @@ const transformCode = (code) => {
 
   resultString = resultString
     .replace(
+      // корректировка лишних табуляций и переносов строк в скобках функции Math.Abs()
+      /\.Abs\(\n\t{0,}(.*)\n\t{0,}\)/gm,
+      ".Abs($1)"
+    )
+    .replace(
       // && перенесем на новую строку;
       /(&&)/gm,
       "\n$1\n"
@@ -70,21 +109,6 @@ const transformCode = (code) => {
       // || перенесем на новую строку;
       /(\|\|)/gm,
       "\n$1\n"
-    )
-    .replace(
-      // переведем знаки $ в _value для ситуаций, когда перед долларом нет индекса например d_r$
-      /(\$)/gm,
-      "_value"
-    )
-    .replace(
-      // после замена $ в _value могут появиться варианты td1_value когда индекс нужно поставить сразу после _value
-      /(\d{1,})_value/gm,
-      "_value$1"
-    )
-    .replace(
-      // обработаем отдельно стоящие модули, как содержащие выражения |vl1 - p1|, так и содержащие просто значения |td_value1|
-      /(\|)((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\d{0,})((\+|-)((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\d{0,}))){0,})(\|)/gm,
-      "Math.Abs($2)"
     )
     .replace(
       // содержимое квадратных скобок перенесем в круглые
@@ -98,22 +122,17 @@ const transformCode = (code) => {
     )
     .replace(
       // обрамим лидирующую сумму или разницу в скобки, чтобы при дальше при при добавлении .ApproxCompare() корректно сравнивалось с выражением целым, а не с первой частью
-      /(((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(_value){0,}(\d{1,}){0,})(\+|-)((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(_value){0,}(\d{1,}){0,}))(\.|<=|>=|!=|==|<|>){0,}/gm,
+      /(((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(_value){0,}(\d{1,}){0,})(\+|-)((\d{1,}\*TickSize|td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(_value){0,}(\d{0,}){0,}))(\.|<=|>=|!=|==|<|>){0,}/gm,
       "Instrument.MasterInstrument.RoundToTickSize($1)$13"
     )
     .replace(
-      // дополним значение в фигурных скобкам с с левой стороны подчеркиванием
-      /(\{)(vh|vl)(\})/gm,
-      "_$2"
-    )
-    .replace(
       // все индексы типа l3 vh1 приведем к виду функций _l(3) и _vh(1)
-      /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\({0,})(\d|start|i|size123(\+\d){0,})(\){0,})/gm,
-      "_$1$2($4)"
+      /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}(\d|start|i|size123(\+\d){0,})/gm,
+      "_$1$2($3)"
     )
     .replace(
       // все описания функций без подчеркивания и с n внутри скобок типа o(n+1) c(n+1) переведем в _o(n+1) и _c(n+1)
-      /((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}\(n(\+|-)\d{1,}\))/gm,
+      /((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|b){0,}\((n|i)((\+|-)\d{1,}){0,}\))/gm,
       "_$1"
     )
     .replace(
@@ -130,6 +149,11 @@ const transformCode = (code) => {
       // добавим правильное отображение типа уровня в условии
       /(nl|ns)(\.type).ApproxCompare\((p_r|vl_r|vh_r|vh1|vl1|p2|d_r)\) == 0/gm,
       "$1$2 == handlarVXv2EnumLevelType.$3"
+    )
+    .replace(
+      // заменим значение тиков в скобке (3t) на (3*TickSize)
+      /\((\d){1,}t\)/gm,
+      "($1*TickSize)"
     )
     .replace(
       // добавим слева и с права от плюса и минуса пробелы для улучшения читаемости условий
