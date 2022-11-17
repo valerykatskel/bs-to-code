@@ -153,7 +153,7 @@ const transformCode = (code) => {
     )
     .replace(
       // добавим правильное отображение типа уровня в условии
-      /(nl|ns)(\.type).ApproxCompare\((p_r|vl_r|vh_r|vh1|vl1|p2|d_r)\) == 0/gm,
+      /(nl|ns)(\.type).ApproxCompare\((p_r|vl_r|vh_r|vh1|vl1|p2|d_r)\)==0/gm,
       "$1$2 == handlarVXv2EnumLevelType.$3"
     )
     .replace(
@@ -180,6 +180,11 @@ const transformCode = (code) => {
       // добавим недостающие пробелы форматирования в конце строк
       /(>=|<=|!=|==|>|<)(\d){1,}(&&|\|\|){0,}$/gm,
       " $1 $2 $3"
+    )
+    .replace(
+      // уберем лишние пробелы, табуляцию и пренос строк между скобок в вызовах фйнкций типа springCommonShort()
+      /\((\n|\t){1,}\)/gm,
+      "()"
     );
 
   //resultString = resultString
