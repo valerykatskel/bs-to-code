@@ -20,7 +20,7 @@ const transformCode = (code) => {
     )
     .replace(
       // преобразуем все +- тики
-      /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}((\[n\+){0,}\d{0,}(\]){0,})==(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}((\[n\+){0,}\d{0,}(\]){0,})(\+-(\d{0,1}t))/gm,
+      /(td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}((\[n\+){0,}\d{0,}(\]){0,})==(td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}((\[n\+){0,}\d{0,}(\]){0,})(\+-(\d{0,1}t))/gm,
       "$1$2$3<=$6$7$8+$12&&$1$2$3>=$6$7$8-$12"
     )
     .replace(
@@ -51,7 +51,7 @@ const transformCode = (code) => {
     )
     .replace(
       // обработаем отдельно стоящие модули, как содержащие выражения |vl1 - p1|, так и содержащие просто значения |td_value1|
-      /(\|)((td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(\d{0,})((\+|-)((td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(\d{0,}))){0,})(\|)/gm,
+      /(\|)((td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(\d{0,})((\+|-)((td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(\d{0,}))){0,})(\|)/gm,
       "Math.Abs($2)"
     );
   for (let i = 0; i < formattedValue.length; i++) {
@@ -122,23 +122,23 @@ const transformCode = (code) => {
     )
     .replace(
       // обрамим лидирующую сумму или разницу в скобки, чтобы при дальше при при добавлении .ApproxCompare() корректно сравнивалось с выражением целым, а не с первой частью
-      /(((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(_value){0,}(\d{1,}){0,})(\+|-)((\d{1,}\*TickSize|td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|imb|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(_value){0,}(\d{0,}){0,}))(\.|<=|>=|!=|==|<|>){0,}/gm,
+      /(((td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(_value){0,}(\d{1,}){0,})(\+|-)((\d{1,}\*TickSize|td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(_value){0,}(\d{0,}){0,}))(\.|<=|>=|!=|==|<|>){0,}/gm,
       "Instrument.MasterInstrument.RoundToTickSize($1)$13"
     )
     .replace(
       // все индексы типа l3 vh1 приведем к виду функций _l(3) и _vh(1)
-      /(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(\d|start|i|size123(\+\d){0,})/gm,
+      /(td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(\d|start|i|size123(\+\d){0,})/gm,
       "_$1$2($3)"
     )
     .replace(
       // все описания функций без подчеркивания и с n внутри скобок типа o(n+1) c(n+1) переведем в _o(n+1) и _c(n+1)
-      /((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}\((n|i)((\+|-)\d{1,}){0,}\))/gm,
+      /((td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}\((n|i)((\+|-)\d{1,}){0,}\))/gm,
       "_$1"
     )
 
     .replace(
       // все описания функций без подчеркивания и с n внутри скобок типа o(start_r) переведем в _o(istart_r)
-      /((td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}\((start_r|start_l|start_m|start_b|start_x)((\+|-)\d{1,}){0,}\))/gm,
+      /((td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}\((start_r|start_l|start_m|start_b|start_x)((\+|-)\d{1,}){0,}\))/gm,
       "_$2(getBar(i$4))"
     )
     .replace(
@@ -148,7 +148,7 @@ const transformCode = (code) => {
     )
     .replace(
       // заменим все разности на Instrument.MasterInstrument.RoundToTickSize
-      /(ApproxCompare)(\()((_(td_value|p_value|d_value|vh_value|vl_value|d_vh|d_vl|d_high|d_low|hbody|lbody|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(\())(n\+\d{1,}|\d|start|i|size123(\+\d){0,})(\))(\+|-)(.{0,}))(\))/gm,
+      /(ApproxCompare)(\()((_(td_value|p_value|d_value|vh_value|vh_r_value|vh_l_value|vh_t_value|vl_value|vl_r_value|vl_l_value|vl_t_value|d_vh|d_vl|d_high|d_low|imb|hbody_c|lbody_c|hbody|lbody|body_c|body|dp_value|dvh_value|dvl_value|dvh|dvl|vh|vl|dp|amx_value|bmx_value|amx|bmx|cd|h_c|l_c|o_c|c_c|d|v|o|c|h|l|p)(_r|_l|_m|_b|_x|_t){0,}(\())(n\+\d{1,}|\d|start|i|size123(\+\d){0,})(\))(\+|-)(.{0,}))(\))/gm,
       "$1$2Instrument.MasterInstrument.RoundToTickSize($3)$10"
     )
     .replace(
